@@ -63,29 +63,65 @@ func TestElementMult_Sparse(t *testing.T) {
 }
 
 func TestGetMatrix_Sparse(t *testing.T) {
-	numRows := 20
-	numColumns := 20
+	numRows := 40
+	numColumns := 40
 	A := ZerosSparse(numRows, numColumns)
 	for i := 0; i < numRows; i++ {
 		for j := 0; j < numColumns; j++ {
-			A.Set(i, j, float64(10*i+j))
+			A.Set(i, j, float64(100*i+j))
 		}
 	}
-	B := A.GetMatrix(0, numColumns/2, numRows/2, numColumns)
+	rowsStart := numRows / 4
+	rowsEnd := 2 * numRows / 4
+	colsStart := 2 * numColumns / 4
+	colsEnd := 3 * numColumns / 4
+	B := A.GetMatrix(rowsStart, colsStart, rowsEnd, colsEnd)
 
-	if B.Rows() != numRows/2 {
-		t.Log(fmt.Sprintf("wrong number of rows, expected %d, got %d", numRows/2, B.Rows()))
+	if B.Rows() != numRows/4 {
+		t.Log(fmt.Sprintf("wrong number of rows, expected %d, got %d", numRows/4, B.Rows()))
 		t.Fail()
 	}
-	if B.Cols() != numColumns/2 {
-		t.Log(fmt.Sprintf("wrong number of columns, expected %d, got %d", numColumns/2, B.Cols()))
+	if B.Cols() != numColumns/4 {
+		t.Log(fmt.Sprintf("wrong number of columns, expected %d, got %d", numColumns/4, B.Cols()))
 		t.Fail()
 	}
-	for i := 0; i < numRows/2; i++ {
-		for j := 0; j < numColumns/2; j++ {
-			if B.Get(i, j) != A.Get(i, j+numColumns/2) {
-				t.Log(fmt.Sprintf("wrong value in (%d,%d), expected %f, got %f", i, j, A.Get(i, j+numColumns/2), B.Get(i, j)))
+	for i := 0; i < numRows/4; i++ {
+		for j := 0; j < numColumns/4; j++ {
+			expected := A.Get(i+rowsStart, j+colsStart)
+			actual := B.Get(i, j)
+			if expected != actual {
+				t.Log(fmt.Sprintf("wrong value in (%d,%d), expected %f, got %f", i, j, expected, actual))
 				t.Fail()
+			}
+		}
+	}
+
+	if !t.Failed() {
+		// Do again on the previous output
+		numRows = 10
+		numColumns = 10
+		rowsStart := 0
+		rowsEnd := numRows / 2
+		colsStart := numColumns / 2
+		colsEnd := numColumns
+		C := B.GetMatrix(rowsStart, colsStart, rowsEnd, colsEnd)
+
+		if C.Rows() != numRows/2 {
+			t.Log(fmt.Sprintf("wrong number of rows, expected %d, got %d", numRows/2, C.Rows()))
+			t.Fail()
+		}
+		if C.Cols() != numColumns/2 {
+			t.Log(fmt.Sprintf("wrong number of columns, expected %d, got %d", numColumns/2, C.Cols()))
+			t.Fail()
+		}
+		for i := 0; i < numRows/2; i++ {
+			for j := 0; j < numColumns/2; j++ {
+				expected := B.Get(i+rowsStart, j+colsStart)
+				actual := C.Get(i, j)
+				if expected != actual {
+					t.Log(fmt.Sprintf("wrong value in (%d,%d), expected %f, got %f", i, j, expected, actual))
+					t.Fail()
+				}
 			}
 		}
 	}
