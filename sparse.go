@@ -120,17 +120,17 @@ Get a matrix representing a subportion of A. Changes to the new matrix will be
 reflected in A.
 */
 func (A *SparseMatrix) GetMatrix(i, j, rows, cols int) (subMatrix *SparseMatrix) {
-	if i < 0 || j < 0 || i+rows > A.rows || j+cols > A.cols {
+	if i < 0 || j < 0 || rows > A.rows || cols > A.cols {
 		i = maxInt(0, i)
 		j = maxInt(0, j)
-		rows = minInt(A.rows-i, rows)
-		cols = minInt(A.cols-j, cols)
+		rows = minInt(A.rows, rows)
+		cols = minInt(A.cols, cols)
 	}
 
 	subMatrix = new(SparseMatrix)
-	subMatrix.rows = rows
-	subMatrix.cols = cols
-	subMatrix.offset = (i+A.offset/A.step)*A.step + (j + A.offset%A.step)
+	subMatrix.rows = rows - i
+	subMatrix.cols = cols - j
+	subMatrix.offset = i*A.step + j + A.offset
 	subMatrix.step = A.step
 	subMatrix.elements = A.elements
 
