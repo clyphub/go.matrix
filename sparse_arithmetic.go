@@ -70,10 +70,7 @@ func (A *SparseMatrix) AddSparse(B *SparseMatrix) error {
 	}
 
 	for index, value := range B.elements {
-		if !A.IsValidIndex(index) {
-			continue
-		}
-		i, j := A.GetRowColFromIndex(index)
+		i, j := A.GetRowColIndex(index)
 		A.Set(i, j, A.Get(i, j)+value)
 	}
 
@@ -110,10 +107,7 @@ func (A *SparseMatrix) SubtractSparse(B *SparseMatrix) error {
 	}
 
 	for index, value := range B.elements {
-		if !A.IsValidIndex(index) {
-			continue
-		}
-		i, j := A.GetRowColFromIndex(index)
+		i, j := A.GetRowColIndex(index)
 		A.Set(i, j, A.Get(i, j)-value)
 	}
 
@@ -137,10 +131,7 @@ func (A *SparseMatrix) Times(B MatrixRO) (Matrix, error) {
 	C := ZerosSparse(A.rows, B.Cols())
 
 	for index, value := range A.elements {
-		if !A.IsValidIndex(index) {
-			continue
-		}
-		i, k := A.GetRowColFromIndex(index)
+		i, k := A.GetRowColIndex(index)
 		//not sure if there is a more efficient way to do this without using
 		//a different data structure
 		for j := 0; j < B.Cols(); j++ {
@@ -165,10 +156,7 @@ func (A *SparseMatrix) TimesSparse(B *SparseMatrix) (*SparseMatrix, error) {
 	C := ZerosSparse(A.rows, B.Cols())
 
 	for index, value := range A.elements {
-		if !A.IsValidIndex(index) {
-			continue
-		}
-		i, k := A.GetRowColFromIndex(index)
+		i, k := A.GetRowColIndex(index)
 		//not sure if there is a more efficient way to do this without using
 		//a different data structure
 		for j := 0; j < B.Cols(); j++ {
@@ -187,9 +175,6 @@ Scale this matrix by f.
 */
 func (A *SparseMatrix) Scale(f float64) {
 	for index, value := range A.elements {
-		if !A.IsValidIndex(index) {
-			continue
-		}
 		A.elements[index] = value * f
 	}
 }
@@ -221,10 +206,7 @@ func (A *SparseMatrix) ScaleMatrix(B MatrixRO) error {
 	}
 
 	for index, value := range A.elements {
-		if !A.IsValidIndex(index) {
-			continue
-		}
-		i, j := A.GetRowColFromIndex(index)
+		i, j := A.GetRowColIndex(index)
 		A.Set(i, j, value*B.Get(i, j))
 	}
 
@@ -235,17 +217,15 @@ func (A *SparseMatrix) ScaleMatrix(B MatrixRO) error {
 Scale this matrix by another sparse matrix, element-wise. Optimized for sparsity.
 */
 func (A *SparseMatrix) ScaleMatrixSparse(B *SparseMatrix) error {
-	if A.rows != B.rows || A.cols != B.cols {
-		return ErrorDimensionMismatch
-	}
-
-	for index, value := range A.elements {
-		if !A.IsValidIndex(index) {
-			continue
+	if len(B.elements) > len(A.elements) {
+		if A.rows != B.rows || A.cols != B.cols {
+			return ErrorDimensionMismatch
 		}
-		i, j := A.GetRowColFromIndex(index)
-		A.Set(i, j, value*B.Get(i, j))
-	}
 
-	return nil
+		for index, value := range A.elements {
+			i, j := A.GetRowColIndex(index)
+			A.Set(i, j, value*B.Get(i, j))
+		}
+	}
+	return A.ScaleMatrix(B)
 }
