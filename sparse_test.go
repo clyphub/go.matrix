@@ -202,6 +202,43 @@ func TestGetTuples_Sparse(t *testing.T) {
 			t.Fail()
 		}
 	}
+
+	B := MakeDenseMatrix([]float64{0, 0, 0, 40, 0, 60, 0, 80, 90}, 3, 3).SparseMatrix()
+	B0 := B.GetRowVector(0)
+	B2 := B.GetRowVector(2)
+	t.Run("should work only within submatrix bounds", func(t *testing.T) {
+		tuples := B0.GetTuples(2)
+		if len(tuples) != 0 {
+			t.Fail()
+		}
+		tuples = B0.GetTuples(3)
+		if len(tuples) != 0 {
+			t.Fail()
+		}
+	})
+
+	t.Run("should return non-zero elements even for submatrix", func(t *testing.T) {
+		tuples := B0.GetTuples(0)
+		if len(tuples) != 0 {
+			t.Fail()
+		}
+
+		tuples = B2.GetTuples(0)
+		if len(tuples) != 2 {
+			t.Fail()
+		}
+
+		v01 := IndexedValue{0, 1, 80}
+		if tuples[0] != v01 {
+			t.Fail()
+		}
+
+		v02 := IndexedValue{0, 2, 90}
+		if tuples[1] != v02 {
+			t.Fail()
+		}
+	})
+
 }
 
 func BenchmarkGetIterate_Sparse(b *testing.B) {

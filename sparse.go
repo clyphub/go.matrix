@@ -41,7 +41,13 @@ func (A *SparseMatrix) GetTuples(row int) []IndexedValue {
 		if isNearlyZero(value) {
 			continue
 		}
+		if index < A.offset {
+			continue
+		}
 		i, j := A.GetRowColIndex(index)
+		if i > A.rows || j > A.cols {
+			continue
+		}
 		if i == row {
 			tuples = append(tuples, IndexedValue{Row: i, Col: j, Val: value})
 		}
