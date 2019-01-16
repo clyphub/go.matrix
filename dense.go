@@ -72,7 +72,7 @@ func (A *DenseMatrix) Get(i int, j int) (v float64) {
 	return
 }
 
-func (A *DenseMatrix) GetTuples(row int) []IndexedValue {
+func (A *DenseMatrix) GetTuples() []IndexedValue {
 	panic("not implemented")
 }
 

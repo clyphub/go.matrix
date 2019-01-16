@@ -35,7 +35,7 @@ func (A *SparseMatrix) Get(i, j int) float64 {
 	return x
 }
 
-func (A *SparseMatrix) GetTuples(row int) []IndexedValue {
+func (A *SparseMatrix) GetTuples() []IndexedValue {
 	tuples := []IndexedValue{}
 	for index, value := range A.elements {
 		if isNearlyZero(value) {
@@ -45,12 +45,10 @@ func (A *SparseMatrix) GetTuples(row int) []IndexedValue {
 			continue
 		}
 		i, j := A.GetRowColIndex(index)
-		if i > A.rows || j > A.cols {
+		if i < 0 || j < 0 || i >= A.rows || j >= A.cols {
 			continue
 		}
-		if i == row {
-			tuples = append(tuples, IndexedValue{Row: i, Col: j, Val: value})
-		}
+		tuples = append(tuples, IndexedValue{Row: i, Col: j, Val: value})
 	}
 
 	sort.Slice(tuples, func(i, j int) bool {
