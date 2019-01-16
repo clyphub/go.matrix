@@ -210,7 +210,6 @@ func Test_GetRowColIndex(t *testing.T) {
 	}
 
 	A22 := A.GetMatrix(1, 1, 2, 2)
-	fmt.Println("off:", A22.offset, "step:", A22.step, "rows:", A22.rows, "cols:", A22.cols)
 	indexRowsCols = map[int][]int{
 		4: []int{0, 0, 4},
 		5: []int{0, 1, 5},
