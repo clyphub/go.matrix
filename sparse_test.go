@@ -186,10 +186,55 @@ func TestStack_Sparse(t *testing.T) {
 	}
 }
 
+func Test_GetRowColIndex(t *testing.T) {
+	A := MakeDenseMatrix([]float64{0, 1, 2, 3, 4, 5, 6, 7, 8}, 3, 3).SparseMatrix()
+	indexRowsCols := map[int][]int{
+		0: []int{0, 0, 0},
+		1: []int{0, 1, 1},
+		2: []int{0, 2, 2},
+		3: []int{1, 0, 3},
+		4: []int{1, 1, 4},
+		5: []int{1, 2, 5},
+		6: []int{2, 0, 6},
+		7: []int{2, 1, 7},
+		8: []int{2, 2, 8},
+	}
+	for k, v := range indexRowsCols {
+		i, j := A.GetRowColIndex(k)
+		if i != v[0] || j != v[1] {
+			t.Fail()
+		}
+		if v[2] != int(A.Get(i, j)) {
+			t.Fail()
+		}
+	}
+
+	A22 := A.GetMatrix(1, 1, 2, 2)
+	indexRowsCols = map[int][]int{
+		4: []int{0, 0, 4},
+		5: []int{0, 1, 5},
+		7: []int{1, 0, 7},
+		8: []int{1, 1, 8},
+	}
+	for k, v := range indexRowsCols {
+		i, j := A22.GetRowColIndex(k)
+		if i != v[0] || j != v[1] {
+			fmt.Println(i, j, v[0], v[1])
+			t.Fail()
+		}
+
+		val := int(A22.Get(i, j))
+		if v[2] != val {
+			fmt.Println(val, v[2])
+			t.Fail()
+		}
+	}
+}
+
 func TestGetTuples_Sparse(t *testing.T) {
 	A := NormalsSparse(4, 4, 16)
+	rowVals := []float64{}
 	for row := 0; row < 4; row++ {
-		rowVals := []float64{}
 		for i := 0; i < 4; i++ {
 			val := A.Get(row, i)
 			if isNearlyZero(val) {
@@ -197,8 +242,62 @@ func TestGetTuples_Sparse(t *testing.T) {
 			}
 			rowVals = append(rowVals, val)
 		}
-		tuples := A.GetTuples(row)
-		if len(tuples) != len(rowVals) {
+	}
+	tuples := A.GetTuples()
+	if len(tuples) != len(rowVals) {
+		t.Fail()
+	}
+
+	B := MakeDenseMatrix([]float64{0, 0, 0, 40, 0, 0, 0, 80, 90}, 3, 3).SparseMatrix()
+	row0 := B.GetRowVector(0)
+	tuples = row0.GetTuples()
+	if len(tuples) != 0 {
+		t.Fail()
+	}
+
+	row2 := B.GetRowVector(2)
+	tuples = row2.GetTuples()
+	if len(tuples) != 2 {
+		t.Fail()
+	}
+
+	row3Invalid := B.GetRowVector(3)
+	tuples = row3Invalid.GetTuples()
+	if len(tuples) != 0 {
+		t.Fail()
+	}
+
+	col1 := B.GetColVector(1)
+	tuples = col1.GetTuples()
+	if len(tuples) != 1 {
+		t.Fail()
+	}
+	val := IndexedValue{2, 0, 80}
+	if tuples[0] != val {
+		t.Fail()
+	}
+
+	col2 := B.GetColVector(2)
+	tuples = col2.GetTuples()
+	if len(tuples) != 1 {
+		t.Fail()
+	}
+	val = IndexedValue{2, 0, 90}
+	if tuples[0] != val {
+		t.Fail()
+	}
+
+	m22 := B.GetMatrix(1, 1, 2, 2)
+	tuples = m22.GetTuples()
+	if len(tuples) != 2 {
+		t.Fail()
+	}
+	vals := []IndexedValue{
+		{1, 0, 80},
+		{1, 1, 90},
+	}
+	for i, val := range vals {
+		if tuples[i] != val {
 			t.Fail()
 		}
 	}
@@ -223,13 +322,13 @@ func BenchmarkGetIterate_Sparse(b *testing.B) {
 func BenchmarkGetTuplesCreate_Sparse(b *testing.B) {
 	A := NormalsSparse(1, 100000, 16)
 	for i := 0; i < b.N; i++ {
-		_ = A.GetTuples(0)
+		_ = A.GetTuples()
 	}
 }
 
 func BenchmarkGetTuplesIterate_Sparse(b *testing.B) {
 	A := NormalsSparse(1, 100000, 16)
-	tuples := A.GetTuples(0)
+	tuples := A.GetTuples()
 
 	iterateOver := func(t []IndexedValue) {
 		for range t {

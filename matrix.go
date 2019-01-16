@@ -36,8 +36,8 @@ type MatrixRO interface {
 	//The element in the ith row and jth column.
 	Get(i, j int) float64
 
-	//The non-zero elements of given row in row-col-val tuples
-	GetTuples(row int) []IndexedValue
+	//The non-zero elements of given matrix in row-col-val tuples
+	GetTuples() []IndexedValue
 
 	Plus(MatrixRO) (Matrix, error)
 	Minus(MatrixRO) (Matrix, error)

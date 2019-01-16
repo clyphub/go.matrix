@@ -35,16 +35,20 @@ func (A *SparseMatrix) Get(i, j int) float64 {
 	return x
 }
 
-func (A *SparseMatrix) GetTuples(row int) []IndexedValue {
+func (A *SparseMatrix) GetTuples() []IndexedValue {
 	tuples := []IndexedValue{}
 	for index, value := range A.elements {
 		if isNearlyZero(value) {
 			continue
 		}
-		i, j := A.GetRowColIndex(index)
-		if i == row {
-			tuples = append(tuples, IndexedValue{Row: i, Col: j, Val: value})
+		if index < A.offset {
+			continue
 		}
+		i, j := A.GetRowColIndex(index)
+		if i < 0 || j < 0 || i >= A.rows || j >= A.cols {
+			continue
+		}
+		tuples = append(tuples, IndexedValue{Row: i, Col: j, Val: value})
 	}
 
 	sort.Slice(tuples, func(i, j int) bool {
@@ -88,8 +92,11 @@ func (A *SparseMatrix) GetColIndex(index int) (j int) {
 Turn an element index into a row and column number.
 */
 func (A *SparseMatrix) GetRowColIndex(index int) (i int, j int) {
+	if index < A.offset {
+		panic("invalid index")
+	}
 	i = (index - A.offset) / A.step
-	j = (index - A.offset) % A.step
+	j = (index % A.step) - (A.offset % A.step)
 	return
 }
 
@@ -166,7 +173,7 @@ func (A *SparseMatrix) GetMatrix(i, j, rows, cols int) (subMatrix *SparseMatrix)
 Gets a reference to a column vector.
 */
 func (A *SparseMatrix) GetColVector(j int) *SparseMatrix {
-	return A.GetMatrix(0, j, A.rows, j+1)
+	return A.GetMatrix(0, j, A.rows, 1)
 }
 
 /*

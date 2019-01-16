@@ -29,7 +29,7 @@ func (P *PivotMatrix) Get(i, j int) float64 {
 	return 0
 }
 
-func (P *PivotMatrix) GetTuples(row int) []IndexedValue {
+func (P *PivotMatrix) GetTuples() []IndexedValue {
 	panic("not implemented")
 }
 
