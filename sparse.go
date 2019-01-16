@@ -137,6 +137,9 @@ func (A *SparseMatrix) Indices() (out chan int) {
 	out = make(chan int)
 	go func(o chan int) {
 		for index := range A.elements {
+			if index < A.offset {
+				continue
+			}
 			i, j := A.GetRowColIndex(index)
 			if 0 <= i && i < A.rows && 0 <= j && j < A.cols {
 				o <- index

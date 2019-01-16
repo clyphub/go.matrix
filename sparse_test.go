@@ -6,6 +6,7 @@ package matrix
 
 import (
 	"fmt"
+	"sort"
 	"testing"
 )
 
@@ -337,5 +338,21 @@ func BenchmarkGetTuplesIterate_Sparse(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		iterateOver(tuples)
+	}
+}
+
+func Test_Indices(t *testing.T) {
+	A := MakeDenseMatrix([]float64{0, 1, 2, 3, 4, 5, 6, 7, 8}, 3, 3).SparseMatrix()
+	r0 := A.GetMatrix(1, 1, 2, 2)
+	indices := []int{}
+	for v := range r0.Indices() {
+		indices = append(indices, v)
+	}
+	if len(indices) != 4 {
+		t.Fail()
+	}
+	sort.Ints(indices)
+	if indices[0] != 4 && indices[1] != 5 && indices[2] != 7 && indices[3] != 8 {
+		t.Fail()
 	}
 }
