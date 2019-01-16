@@ -94,8 +94,11 @@ func (A *SparseMatrix) GetColIndex(index int) (j int) {
 Turn an element index into a row and column number.
 */
 func (A *SparseMatrix) GetRowColIndex(index int) (i int, j int) {
+	if index < A.offset {
+		panic("invalid index")
+	}
 	i = (index - A.offset) / A.step
-	j = (index - A.offset) % A.step
+	j = (index % A.step) - (A.offset % A.step)
 	return
 }
 

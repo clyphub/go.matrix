@@ -186,6 +186,52 @@ func TestStack_Sparse(t *testing.T) {
 	}
 }
 
+func Test_GetRowColIndex(t *testing.T) {
+	A := MakeDenseMatrix([]float64{0, 1, 2, 3, 4, 5, 6, 7, 8}, 3, 3).SparseMatrix()
+	indexRowsCols := map[int][]int{
+		0: []int{0, 0, 0},
+		1: []int{0, 1, 1},
+		2: []int{0, 2, 2},
+		3: []int{1, 0, 3},
+		4: []int{1, 1, 4},
+		5: []int{1, 2, 5},
+		6: []int{2, 0, 6},
+		7: []int{2, 1, 7},
+		8: []int{2, 2, 8},
+	}
+	for k, v := range indexRowsCols {
+		i, j := A.GetRowColIndex(k)
+		if i != v[0] || j != v[1] {
+			t.Fail()
+		}
+		if v[2] != int(A.Get(i, j)) {
+			t.Fail()
+		}
+	}
+
+	A22 := A.GetMatrix(1, 1, 2, 2)
+	fmt.Println("off:", A22.offset, "step:", A22.step, "rows:", A22.rows, "cols:", A22.cols)
+	indexRowsCols = map[int][]int{
+		4: []int{0, 0, 4},
+		5: []int{0, 1, 5},
+		7: []int{1, 0, 7},
+		8: []int{1, 1, 8},
+	}
+	for k, v := range indexRowsCols {
+		i, j := A22.GetRowColIndex(k)
+		if i != v[0] || j != v[1] {
+			fmt.Println(i, j, v[0], v[1])
+			t.Fail()
+		}
+
+		val := int(A22.Get(i, j))
+		if v[2] != val {
+			fmt.Println(val, v[2])
+			t.Fail()
+		}
+	}
+}
+
 func TestGetTuples_Sparse(t *testing.T) {
 	A := NormalsSparse(4, 4, 16)
 	for row := 0; row < 4; row++ {
